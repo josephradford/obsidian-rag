@@ -268,7 +268,29 @@ Template for `.env` - copy and customize for local setup
 
 ## Git Workflow
 
-- Main branch: `main`
-- Use branch protection and PR template (to be set up)
-- Commit discipline: config management, logging, and tracking from first commit
-- Never commit: `.venv/`, `.env`, `data/`, `mlruns/`, `mlartifacts/`, `logs/`
+**Branching Strategy: GitHub Flow**
+
+- Main branch: `main` (protected - never push directly to main)
+- All work done in feature branches: `feature/description` or `bugfix/description`
+- Create pull requests to merge into main
+- Use branch protection and PR template
+
+**Workflow:**
+1. Create feature branch: `git checkout -b feature/your-feature`
+2. Make changes and commit regularly
+3. Push to remote: `git push -u origin feature/your-feature`
+4. Create pull request on GitHub
+5. Review and merge to main via PR (never push directly)
+
+**Commit Discipline:**
+- Config management, logging, and tracking from first commit
+- Descriptive commit messages following project conventions
+- Include Co-Authored-By for Claude Code commits
+
+**Never Commit:**
+- `.venv/` - Virtual environment
+- `.env` - Local configuration with secrets
+- `data/` - Local data directory
+- `mlruns/`, `mlartifacts/` - MLflow artifacts
+- `logs/` - Log files
+- `.DS_Store` - macOS metadata
