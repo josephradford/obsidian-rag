@@ -4,88 +4,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an Obsidian RAG (Retrieval-Augmented Generation) pipeline that queries a personal Obsidian vault using local LLMs. The project is built with MLOps practices from day one, demonstrating practical AI/ML engineering skills including experiment tracking, prompt versioning, structured logging, and evaluation.
+Obsidian RAG pipeline with MLOps practices. See README.md for basic setup and usage.
 
 **Current Phase**: Phase 1 - Local RAG Pipeline with MLOps Practices
-**Target Completion**: April 2026
-
-## Development Environment
-
-**Platform**: macOS (Apple Silicon, 8GB RAM)
-**Python Version**: Python 3 with virtual environment (`.venv`)
-
-### Prerequisites Setup
-```bash
-# Activate virtual environment
-source .venv/bin/activate
-
-# Install Ollama models
-ollama pull llama3.2:3b          # Main LLM (~2GB)
-ollama pull nomic-embed-text     # Embedding model (~274MB)
-```
+**Environment**: macOS (Apple Silicon, 8GB RAM)
 
 ## Key Commands
 
-### Setup
-```bash
-# Initial setup (creates venv, installs deps, pulls models)
-./scripts/setup.sh
+Basic commands are in README.md. Additional commands for development:
 
-# Activate environment
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Core Pipeline Operations
-```bash
-# Ingest Obsidian vault into ChromaDB
-python src/ingest.py
-
-# Query via CLI
-python src/query.py "Your question here"
-
-# Run FastAPI server
-uvicorn src.api:app --reload --port 8000
-
-# View MLflow tracking UI
-mlflow ui --port 5001
-```
-
-### Evaluation and Experiments
 ```bash
 # Run evaluation script
 python eval/evaluate.py
 
 # Run chunking experiments
 ./scripts/run_experiment.sh
-```
 
-### Testing
-```bash
+# View MLflow tracking UI
+mlflow ui --port 5001
+
 # Test API endpoints
 curl http://localhost:8000/health
 curl http://localhost:8000/metrics
 curl -X POST http://localhost:8000/query \
   -H "Content-Type: application/json" \
   -d '{"question": "Your question", "top_k": 5}'
-
-# Interactive API docs
-# Open http://localhost:8000/docs
 ```
 
 ## Architecture
 
-### Tech Stack
-- **Document Source**: Obsidian vault (Markdown files)
-- **Ingestion/Retrieval**: LlamaIndex
-- **Embedding Model**: nomic-embed-text (via Ollama)
-- **Vector Database**: ChromaDB (embedded, no server)
-- **LLM**: Ollama - Llama 3.2 3B
-- **API Layer**: FastAPI
-- **Experiment Tracking**: MLflow (local)
-- **Logging**: Python logging with JSON formatter
+Tech stack is documented in README.md. Key architectural details:
 
 ### Project Structure
 ```
