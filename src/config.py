@@ -11,6 +11,7 @@ load_dotenv()
 
 # Data
 OBSIDIAN_VAULT_PATH = os.getenv("OBSIDIAN_VAULT_PATH")
+FILE_EXTENSIONS = os.getenv("FILE_EXTENSIONS", ".md,.pdf").split(",")
 
 # Models
 LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:3b")

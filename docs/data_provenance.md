@@ -8,9 +8,9 @@
 - **Volume:** [X files, ~Y MB — fill in after first ingest]
 
 ## Preprocessing
-- File types: .md only
+- File types: .md and .pdf (configurable via FILE_EXTENSIONS)
 - Excluded: .obsidian/, .trash/, templates/
-- Preprocessing applied: [fill in — e.g. wikilink stripping, frontmatter handling]
+- Preprocessing applied: [fill in — e.g. wikilink stripping, frontmatter handling, PDF text extraction]
 
 ## Versioning approach
 - Raw vault is not versioned (personal, changes constantly)
