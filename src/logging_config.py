@@ -4,16 +4,19 @@ Structured JSON logging.
 Why JSON: parseable by CloudWatch (Phase 2), searchable,
 and each log entry can carry metrics (latency, chunk count, etc).
 """
-import logging
 import json
+import logging
 import sys
 from datetime import datetime, timezone
 
-from config import LOG_LEVEL
+from .config import LOG_LEVEL
 
 
 class JSONFormatter(logging.Formatter):
+    """Custom JSON formatter for structured logging."""
+
     def format(self, record):
+        """Format log record as JSON."""
         log_entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
@@ -28,6 +31,7 @@ class JSONFormatter(logging.Formatter):
 
 
 def get_logger(name: str) -> logging.Logger:
+    """Get or create a logger with JSON formatting."""
     logger = logging.getLogger(name)
     if not logger.handlers:
         handler = logging.StreamHandler(sys.stdout)

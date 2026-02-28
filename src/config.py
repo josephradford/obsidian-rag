@@ -4,8 +4,9 @@ Centralised configuration from environment variables.
 MLOps principle: pipeline parameters are config, not code.
 Every parameter that affects output should be here and logged to MLflow.
 """
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
 
 load_dotenv()
 

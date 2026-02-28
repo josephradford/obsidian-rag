@@ -1,0 +1,99 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[project]
+name = "obsidian-rag"
+version = "0.1.0"
+description = "RAG system for querying Obsidian vaults using local LLMs with MLOps practices"
+authors = [
+    {name = "Joe Radford", email = "joe@example.com"},
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+keywords = ["rag", "obsidian", "llm", "mlops"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    # Core RAG dependencies
+    "llama-index>=0.10.0",
+    "llama-index-vector-stores-chroma>=0.1.0",
+    "llama-index-embeddings-ollama>=0.1.0", 
+    "llama-index-llms-ollama>=0.1.0",
+    
+    # Vector store
+    "chromadb>=0.4.0",
+    
+    # API server
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.20.0",
+    
+    # Experiment tracking and logging
+    "mlflow>=2.8.0",
+    
+    # Configuration
+    "python-dotenv>=1.0.0",
+    
+    # PDF support
+    "pymupdf>=1.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "autopep8>=2.0.0",
+    "pylint>=4.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/josephradford/obsidian-rag"
+"Repository" = "https://github.com/josephradford/obsidian-rag"
+"Issues" = "https://github.com/josephradford/obsidian-rag/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+python_classes = "Test*"
+addopts = [
+    "-v",
+    "--tb=short", 
+    "--strict-markers",
+    "--disable-warnings"
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests"
+]
+
+[tool.pylint.main]
+init-hook = 'import sys; sys.path.append("src")'
+
+[tool.pylint."messages control"]
+disable = [
+    "missing-module-docstring",
+    "too-few-public-methods", 
+    "import-error",
+    "wrong-import-position"
+]
+
+[tool.pylint.format]
+max-line-length = 88
+
+[tool.autopep8]
+max_line_length = 88
+aggressive = 2

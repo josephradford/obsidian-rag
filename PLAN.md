@@ -919,7 +919,7 @@ command -v ollama >/dev/null 2>&1 || { echo "Ollama required: brew install ollam
 
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[dev]"
 
 ollama pull llama3.2:3b
 ollama pull nomic-embed-text
