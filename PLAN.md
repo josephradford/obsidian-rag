@@ -919,7 +919,7 @@ command -v ollama >/dev/null 2>&1 || { echo "Ollama required: brew install ollam
 
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[dev]"
 
 ollama pull llama3.2:3b
 ollama pull nomic-embed-text
@@ -1016,8 +1016,15 @@ Draft:
 - [ ] Every eval run tracked in MLflow with params and metrics
 - [ ] Structured JSON logging on all operations with latency and metadata
 - [ ] System prompts versioned as files, switchable via config
-- [ ] Pinned Python dependencies in requirements.txt
+- [ ] Modern Python packaging with pyproject.toml (production vs dev dependencies)
 - [ ] Reproducible setup via scripts/setup.sh and .env.example
+- [ ] Comprehensive unit test suite with >90% coverage
+
+### CI/CD and Quality (foundation for Phase 2)
+- [ ] GitHub Actions CI workflow running tests, linting, formatting checks on every PR
+- [ ] Security scanning with pip-audit (dependencies) and bandit (code security)
+- [ ] Code quality gates: pylint score >8.0, all tests passing, security checks pass
+- [ ] Automated formatting with autopep8, import sorting with isort
 
 ### Experiments
 - [ ] At least one chunking experiment tracked in MLflow with documented results
@@ -1035,7 +1042,7 @@ Draft:
 - [ ] Experiment log with human-readable observations
 
 ### Portfolio
-- [ ] Git repo on GitHub with clean structure
+- [ ] Git repo on GitHub with clean structure and protected main branch
 - [ ] README documents the project, MLOps practices, and roadmap
 - [ ] First blog post drafted
 
@@ -1070,5 +1077,10 @@ Phase 2 (AWS Deployment) takes everything from Phase 1 and:
 - Adds Terraform/CDK for infrastructure-as-code
 - Puts FastAPI behind a load balancer with HTTPS
 - Introduces vLLM for production-grade inference serving
+- **GitHub Actions deployment workflow** (.github/workflows/deploy.yml):
+  - Build and push Docker images to ECR
+  - Deploy infrastructure via Terraform/CDK
+  - Deploy application to EC2/ECS
+  - Run smoke tests and health checks
 
 The config management, structured logging, MLflow tracking, prompt versioning, and evaluation framework all carry forward directly.

@@ -16,6 +16,15 @@ cd obsidian-rag
 ./scripts/setup.sh
 ```
 
+**Or manually:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"  # Install with dev dependencies
+# pip install -e .       # Production only
+```
+
 Configure your vault:
 
 ```bash
@@ -46,6 +55,31 @@ API docs: http://localhost:8000/docs
 - Ollama (Llama 3.2 3B + nomic-embed-text)
 - FastAPI for serving
 - MLflow for experiment tracking
+
+## Testing
+
+Run the test suite:
+
+```bash
+source .venv/bin/activate
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src
+
+# Run specific test file
+pytest tests/test_config.py
+
+# Run with verbose output
+pytest -v
+```
+
+**Test Structure:**
+- `tests/test_config.py` - Configuration management tests
+- `tests/test_logging_config.py` - Structured logging tests
+- `pytest.ini` - Test configuration
 
 ## Contributing
 
