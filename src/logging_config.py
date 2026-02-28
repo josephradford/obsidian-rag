@@ -9,7 +9,7 @@ import logging
 import sys
 from datetime import datetime, timezone
 
-from .config import LOG_LEVEL
+from config import LOG_LEVEL
 
 
 class JSONFormatter(logging.Formatter):
