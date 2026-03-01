@@ -4,6 +4,7 @@ Ingest Obsidian vault into ChromaDB vector store.
 Every ingestion run is tracked in MLflow with parameters and metrics.
 """
 import time
+from typing import List, Tuple
 import mlflow
 import chromadb
 from llama_index.core import (
@@ -11,6 +12,7 @@ from llama_index.core import (
     StorageContext,
     VectorStoreIndex,
     Settings,
+    Document,
 )
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -25,7 +27,10 @@ from config import (
     CHUNK_OVERLAP,
     CHROMA_PERSIST_DIR,
     OLLAMA_BASE_URL,
+    OLLAMA_REQUEST_TIMEOUT,
     MLFLOW_TRACKING_URI,
+    FILE_EXTENSIONS,
+    validate_config,
     get_pipeline_params,
 )
 from logging_config import get_logger
@@ -33,7 +38,7 @@ from logging_config import get_logger
 logger = get_logger(__name__)
 
 
-def configure_settings():
+def configure_settings() -> None:
     """Configure LlamaIndex global settings."""
     Settings.embed_model = OllamaEmbedding(
         model_name=EMBED_MODEL,
@@ -42,27 +47,31 @@ def configure_settings():
     Settings.llm = Ollama(
         model=LLM_MODEL,
         base_url=OLLAMA_BASE_URL,
-        request_timeout=120.0,
+        request_timeout=OLLAMA_REQUEST_TIMEOUT,
     )
 
 
-def load_documents(vault_path: str):
-    """Load all markdown files from the Obsidian vault."""
+def load_documents(vault_path: str) -> List[Document]:
+    """Load all files from the Obsidian vault based on configured extensions."""
     reader = SimpleDirectoryReader(
         input_dir=vault_path,
         recursive=True,
-        required_exts=[".md"],
+        required_exts=FILE_EXTENSIONS,
         exclude=[".obsidian", ".trash", "templates"],
     )
     documents = reader.load_data()
     logger.info(
         f"Loaded {len(documents)} documents",
-        extra={"extra_data": {"num_documents": len(documents), "vault_path": vault_path}},
+        extra={"extra_data": {
+            "num_documents": len(documents), 
+            "vault_path": vault_path,
+            "file_extensions": FILE_EXTENSIONS,
+        }},
     )
     return documents
 
 
-def create_index(documents):
+def create_index(documents: List[Document]) -> Tuple[VectorStoreIndex, int]:
     """Chunk documents and store embeddings in ChromaDB."""
     node_parser = SentenceSplitter(
         chunk_size=CHUNK_SIZE,
@@ -74,8 +83,13 @@ def create_index(documents):
     # Delete existing collection for clean re-ingestion
     try:
         chroma_client.delete_collection("obsidian_vault")
-    except (ValueError, Exception):
-        pass
+        logger.info("Deleted existing ChromaDB collection")
+    except ValueError as e:
+        # Collection doesn't exist - this is fine on first run
+        logger.info("No existing collection to delete", extra={"extra_data": {"reason": str(e)}})
+    except Exception as e:
+        logger.warning("Failed to delete existing collection", extra={"extra_data": {"error": str(e)}})
+        # Continue anyway but log the issue
 
     chroma_collection = chroma_client.create_collection("obsidian_vault")
     vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
@@ -96,8 +110,11 @@ def create_index(documents):
     return index, num_chunks
 
 
-def ingest():
+def ingest() -> VectorStoreIndex:
     """Main ingestion pipeline — tracked in MLflow."""
+    # Validate configuration before starting
+    validate_config()
+    
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     mlflow.set_experiment("ingestion")
 
