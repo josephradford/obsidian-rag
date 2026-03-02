@@ -3,6 +3,7 @@ Query engine with prompt versioning and per-query metrics.
 """
 import os
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import chromadb
@@ -29,10 +30,14 @@ logger = get_logger(__name__)
 def load_system_prompt(version: Optional[str] = None) -> str:
     """Load a versioned system prompt from file."""
     version = version or SYSTEM_PROMPT_VERSION
-    prompt_path = os.path.join(
-        os.path.dirname(__file__), "prompts", f"system_{version}.txt"
-    )
-    if not os.path.exists(prompt_path):
+    prompts_dir = Path(__file__).parent / "prompts"
+    # Reject any version string that contains path separators or traversal sequences
+    if os.sep in version or "/" in version or "\\" in version or ".." in version:
+        raise ValueError(f"Invalid prompt version: {version!r}")
+    prompt_path = (prompts_dir / f"system_{version}.txt").resolve()
+    if not str(prompt_path).startswith(str(prompts_dir.resolve())):
+        raise ValueError(f"Invalid prompt version: {version!r}")
+    if not prompt_path.exists():
         raise FileNotFoundError(
             f"System prompt version '{version}' not found at {prompt_path}. "
             f"Create src/prompts/system_{version}.txt to use this version."
@@ -70,7 +75,8 @@ def query(
     """
     Query the index. Returns response, sources, and metrics.
     """
-    top_k = top_k or TOP_K
+    configure_settings()
+    top_k = top_k if top_k is not None else TOP_K
     system_prompt = load_system_prompt(prompt_version)
 
     index = load_index()

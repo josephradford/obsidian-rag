@@ -7,28 +7,51 @@ import pytest
 class TestLoadSystemPrompt:
     """Tests for load_system_prompt()."""
 
-    def test_returns_stripped_prompt_text(self):
+    def test_returns_stripped_prompt_text(self, tmp_path, monkeypatch):
         """load_system_prompt returns stripped content of the prompt file."""
-        with patch("query.os.path.exists", return_value=True), \
-             patch("builtins.open", mock_open(read_data="  You are helpful.  ")):
-            from query import load_system_prompt
-            result = load_system_prompt("v1")
+        prompts_dir = tmp_path / "prompts"
+        prompts_dir.mkdir()
+        (prompts_dir / "system_v1.txt").write_text("  You are helpful.  ", encoding="utf-8")
+
+        # Redirect Path(__file__).parent to tmp_path so the function finds our prompts dir
+        import query as query_mod
+        monkeypatch.setattr(query_mod, "__file__", str(tmp_path / "query.py"))
+
+        from query import load_system_prompt
+        result = load_system_prompt("v1")
         assert result == "You are helpful."
 
-    def test_raises_file_not_found_for_missing_version(self):
+    def test_raises_file_not_found_for_missing_version(self, tmp_path, monkeypatch):
         """load_system_prompt raises FileNotFoundError for unknown version."""
-        with patch("query.os.path.exists", return_value=False):
-            from query import load_system_prompt
-            with pytest.raises(FileNotFoundError, match="v99"):
-                load_system_prompt("v99")
+        prompts_dir = tmp_path / "prompts"
+        prompts_dir.mkdir()
 
-    def test_uses_config_version_when_none_passed(self):
-        """load_system_prompt uses SYSTEM_PROMPT_VERSION from config when version is None."""
+        import query as query_mod
+        monkeypatch.setattr(query_mod, "__file__", str(tmp_path / "query.py"))
+
         from query import load_system_prompt
-        with patch("query.os.path.exists", return_value=True), \
-             patch("builtins.open", mock_open(read_data="default")):
-            result = load_system_prompt(None)
+        with pytest.raises(FileNotFoundError, match="v99"):
+            load_system_prompt("v99")
+
+    def test_uses_config_version_when_none_passed(self, tmp_path, monkeypatch):
+        """load_system_prompt uses SYSTEM_PROMPT_VERSION from config when version is None."""
+        prompts_dir = tmp_path / "prompts"
+        prompts_dir.mkdir()
+
+        import query as query_mod
+        config_version = query_mod.SYSTEM_PROMPT_VERSION
+        (prompts_dir / f"system_{config_version}.txt").write_text("default", encoding="utf-8")
+        monkeypatch.setattr(query_mod, "__file__", str(tmp_path / "query.py"))
+
+        from query import load_system_prompt
+        result = load_system_prompt(None)
         assert result == "default"
+
+    def test_rejects_path_traversal_version(self):
+        """load_system_prompt raises ValueError for path-traversal version strings."""
+        from query import load_system_prompt
+        with pytest.raises(ValueError, match="Invalid prompt version"):
+            load_system_prompt("../../etc/passwd")
 
 
 class TestConfigureSettings:
@@ -106,9 +129,10 @@ class TestQuery:
         node.text = text
         return node
 
+    @patch("query.configure_settings")  # outermost -> last param
     @patch("query.load_index")
     @patch("query.load_system_prompt")
-    def test_sources_mapped_correctly(self, mock_prompt, mock_load_index):
+    def test_sources_mapped_correctly(self, mock_prompt, mock_load_index, mock_configure):
         """query() maps source nodes to file/score/text_preview dicts."""
         from query import query
         mock_prompt.return_value = "prompt text"
@@ -125,9 +149,10 @@ class TestQuery:
         assert result["sources"][0]["score"] == 0.85
         assert len(result["sources"][0]["text_preview"]) <= 200
 
+    @patch("query.configure_settings")  # outermost -> last param
     @patch("query.load_index")
     @patch("query.load_system_prompt")
-    def test_metrics_contain_latency(self, mock_prompt, mock_load_index):
+    def test_metrics_contain_latency(self, mock_prompt, mock_load_index, mock_configure):
         """query() metrics dict includes a non-negative latency_seconds."""
         from query import query
         mock_prompt.return_value = "prompt"
@@ -142,9 +167,10 @@ class TestQuery:
         assert "latency_seconds" in result["metrics"]
         assert result["metrics"]["latency_seconds"] >= 0
 
+    @patch("query.configure_settings")  # outermost -> last param
     @patch("query.load_index")
     @patch("query.load_system_prompt")
-    def test_top_score_is_none_when_no_sources(self, mock_prompt, mock_load_index):
+    def test_top_score_is_none_when_no_sources(self, mock_prompt, mock_load_index, mock_configure):
         """query() sets top_score to None when there are no source nodes."""
         from query import query
         mock_prompt.return_value = "prompt"
@@ -158,10 +184,11 @@ class TestQuery:
 
         assert result["metrics"]["top_score"] is None
 
+    @patch("query.configure_settings")  # outermost -> last param
     @patch("query.load_index")
     @patch("query.load_system_prompt")
     def test_metrics_contain_prompt_version_and_model(
-        self, mock_prompt, mock_load_index
+        self, mock_prompt, mock_load_index, mock_configure
     ):
         """query() metrics include prompt_version and model from config."""
         from query import query, SYSTEM_PROMPT_VERSION, LLM_MODEL
@@ -177,9 +204,10 @@ class TestQuery:
         assert result["metrics"]["prompt_version"] == SYSTEM_PROMPT_VERSION
         assert result["metrics"]["model"] == LLM_MODEL
 
+    @patch("query.configure_settings")  # outermost -> last param
     @patch("query.load_index")
     @patch("query.load_system_prompt")
-    def test_answer_is_string(self, mock_prompt, mock_load_index):
+    def test_answer_is_string(self, mock_prompt, mock_load_index, mock_configure):
         """query() answer field is a string."""
         from query import query
         mock_prompt.return_value = "prompt"
@@ -192,3 +220,22 @@ class TestQuery:
         result = query("test")
 
         assert isinstance(result["answer"], str)
+
+    @patch("query.configure_settings")  # outermost -> last param
+    @patch("query.load_index")
+    @patch("query.load_system_prompt")
+    def test_explicit_prompt_version_appears_in_metrics(
+        self, mock_prompt, mock_load_index, mock_configure
+    ):
+        """query() uses the explicit prompt_version when provided."""
+        from query import query
+        mock_prompt.return_value = "prompt"
+        mock_response = MagicMock()
+        mock_response.source_nodes = []
+        mock_load_index.return_value.as_query_engine.return_value.query.return_value = (
+            mock_response
+        )
+
+        result = query("test", prompt_version="v2")
+
+        assert result["metrics"]["prompt_version"] == "v2"
