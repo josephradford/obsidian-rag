@@ -29,6 +29,9 @@ autopep8 --check --recursive src/ tests/
 # Run evaluation script
 python eval/evaluate.py
 
+# Test query engine directly
+python src/query.py "Your question here"
+
 # Run chunking experiments
 ./scripts/run_experiment.sh
 
@@ -132,9 +135,12 @@ obsidian-rag/
 - All runs logged to MLflow experiment "ingestion"
 
 ### Query Engine (src/query.py)
-- Loads system prompt from versioned file based on config
-- Returns: answer, sources (with file, score, text_preview), metrics
-- Logs: question, latency, num_sources, top_score, prompt_version
+- `load_system_prompt(version)` raises `FileNotFoundError` if prompt file missing, `ValueError` for path traversal attempts
+- `configure_settings()` is called inside `query()` — callers do not need to call it separately
+- Returns: `{"answer", "sources", "metrics"}`
+- Sources contain: `{"file", "score", "text_preview"}`
+- Metrics contain: `{"latency_seconds", "num_sources", "top_score", "prompt_version", "model"}`
+- Logs: question (first 100 chars), latency_seconds, num_sources, top_score, prompt_version
 
 ### FastAPI Server (src/api.py)
 - Loads index once at startup (lifespan context manager)
@@ -224,6 +230,9 @@ Close memory-intensive apps or reduce `top_k` to 3
 
 ### MLflow UI shows no data
 Check `MLFLOW_TRACKING_URI` in `.env` matches `./mlruns`
+
+### Query fails with FileNotFoundError for system prompt
+The prompt version set in `SYSTEM_PROMPT_VERSION` (or passed as `prompt_version`) does not have a matching file in `src/prompts/`. Create `src/prompts/system_vN.txt` for the version you want to use.
 
 ## Configuration Files
 
