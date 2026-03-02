@@ -1,14 +1,12 @@
 """Unit tests for logging_config module."""
-from logging_config import JSONFormatter, get_logger
-import pytest
 import json
 import logging
-import os
 import sys
 from io import StringIO
-from unittest.mock import patch
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+import pytest
+
+from logging_config import JSONFormatter, get_logger
 
 
 class TestJSONFormatter:
