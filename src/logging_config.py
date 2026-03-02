@@ -8,14 +8,15 @@ import json
 import logging
 import sys
 from datetime import datetime, timezone
+from typing import Any
 
-from .config import LOG_LEVEL
+from config import LOG_LEVEL
 
 
 class JSONFormatter(logging.Formatter):
     """Custom JSON formatter for structured logging."""
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON."""
         log_entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),

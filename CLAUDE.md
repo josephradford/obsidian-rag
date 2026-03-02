@@ -8,12 +8,24 @@ Obsidian RAG pipeline with MLOps practices. See README.md for basic setup and us
 
 **Current Phase**: Phase 1 - Local RAG Pipeline with MLOps Practices
 **Environment**: macOS (Apple Silicon, 8GB RAM)
+**Python**: 3.12 (3.13+ has ChromaDB/pydantic-v1 incompatibilities — use `python3.12 -m venv .venv`)
 
 ## Key Commands
 
 Basic commands are in README.md. Additional commands for development:
 
 ```bash
+# Install with development dependencies
+pip install -e ".[dev]"
+
+# Run unit tests
+pytest
+pytest --cov=src  # With coverage
+
+# Run code quality checks
+pylint src/ tests/
+autopep8 --check --recursive src/ tests/
+
 # Run evaluation script
 python eval/evaluate.py
 
@@ -59,7 +71,7 @@ obsidian-rag/
 ```
 
 ### Data Flow
-1. Obsidian vault (.md files) → Ingestion Pipeline → ChromaDB (vectors)
+1. Obsidian vault (.md and .pdf files) → Ingestion Pipeline → ChromaDB (vectors)
 2. User Query (HTTP) → FastAPI Server → Query Engine
 3. Query Engine retrieves from ChromaDB → Sends to Ollama LLM with system prompt
 4. All operations tracked in MLflow
@@ -71,6 +83,13 @@ obsidian-rag/
 - All parameters logged to MLflow on every run
 - Changing model, chunk size, or prompt version is a config change, not code change
 - Use `src/config.py` to access all configuration values
+- FILE_EXTENSIONS configurable (supports .md, .pdf, etc.)
+
+### Modern Python Packaging
+- `pyproject.toml` for dependency management (not requirements.txt)
+- Production vs dev dependencies cleanly separated
+- Install: `pip install -e ".[dev]"` (dev) or `pip install -e .` (production)
+- All tooling (pytest, pylint, autopep8) configured in pyproject.toml
 
 ### Experiment Tracking
 - Every ingestion run is tracked in MLflow with params and metrics
@@ -96,6 +115,13 @@ obsidian-rag/
 - Test dataset in `eval/test_questions.json` with expected sources and answers
 - Metrics: source recall, answer coverage, latency, pass rate
 - All evaluation runs tracked in MLflow for comparison
+
+### Testing and Quality
+- Comprehensive unit test suite in `tests/` directory
+- Run with `pytest` or `pytest --cov=src` for coverage
+- Code quality: `pylint src/ tests/` (target score >8.0)
+- Auto-formatting: `autopep8 --check --recursive src/ tests/`
+- All tools configured in `pyproject.toml`
 
 ## Important Implementation Details
 
@@ -182,7 +208,7 @@ Key ADRs are documented in `docs/architecture.md`:
 ## Troubleshooting
 
 ### Ollama times out during ingestion
-Increase `request_timeout` in `configure_settings()` in the relevant file
+Set `OLLAMA_REQUEST_TIMEOUT=240.0` (or higher) in `.env` — do not hardcode it in `configure_settings()`
 
 ### Poor retrieval quality
 Run chunking experiments via `./scripts/run_experiment.sh` and compare in MLflow
@@ -210,9 +236,17 @@ Contains all runtime configuration including:
 - SYSTEM_PROMPT_VERSION
 - CHROMA_PERSIST_DIR, MLFLOW_TRACKING_URI
 - LOG_LEVEL
+- OLLAMA_REQUEST_TIMEOUT (default: 120.0)
 
 ### .env.example (committed)
 Template for `.env` - copy and customize for local setup
+
+### pyproject.toml (committed)
+Modern Python packaging with:
+- Production dependencies (llama-index, fastapi, mlflow, etc.)
+- Dev dependencies (pytest, pylint, autopep8, etc.)
+- Tool configuration (pytest, pylint, autopep8 settings)
+- Project metadata and build configuration
 
 ## Git Workflow
 
