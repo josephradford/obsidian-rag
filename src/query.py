@@ -35,7 +35,7 @@ def load_system_prompt(version: Optional[str] = None) -> str:
     if os.sep in version or "/" in version or "\\" in version or ".." in version:
         raise ValueError(f"Invalid prompt version: {version!r}")
     prompt_path = (prompts_dir / f"system_{version}.txt").resolve()
-    if not str(prompt_path).startswith(str(prompts_dir.resolve())):
+    if not prompt_path.is_relative_to(prompts_dir.resolve()):
         raise ValueError(f"Invalid prompt version: {version!r}")
     if not prompt_path.exists():
         raise FileNotFoundError(
@@ -126,7 +126,6 @@ def query(
 if __name__ == "__main__":
     import sys
 
-    configure_settings()
     user_question = " ".join(sys.argv[1:]) or "What topics are in my notes?"  # pylint: disable=invalid-name
     result = query(user_question)
     print(f"\nAnswer: {result['answer']}\n")

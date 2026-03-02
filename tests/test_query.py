@@ -1,5 +1,5 @@
 """Unit tests for query module."""
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -13,7 +13,8 @@ class TestLoadSystemPrompt:
         prompts_dir.mkdir()
         (prompts_dir / "system_v1.txt").write_text("  You are helpful.  ", encoding="utf-8")
 
-        # Redirect Path(__file__).parent to tmp_path so the function finds our prompts dir
+        # Redirect Path(__file__).parent to tmp_path so the function finds our
+        # prompts dir
         import query as query_mod
         monkeypatch.setattr(query_mod, "__file__", str(tmp_path / "query.py"))
 
@@ -40,7 +41,8 @@ class TestLoadSystemPrompt:
 
         import query as query_mod
         config_version = query_mod.SYSTEM_PROMPT_VERSION
-        (prompts_dir / f"system_{config_version}.txt").write_text("default", encoding="utf-8")
+        (prompts_dir /
+         f"system_{config_version}.txt").write_text("default", encoding="utf-8")
         monkeypatch.setattr(query_mod, "__file__", str(tmp_path / "query.py"))
 
         from query import load_system_prompt
@@ -132,7 +134,11 @@ class TestQuery:
     @patch("query.configure_settings")  # outermost -> last param
     @patch("query.load_index")
     @patch("query.load_system_prompt")
-    def test_sources_mapped_correctly(self, mock_prompt, mock_load_index, mock_configure):
+    def test_sources_mapped_correctly(
+            self,
+            mock_prompt,
+            mock_load_index,
+            mock_configure):
         """query() maps source nodes to file/score/text_preview dicts."""
         from query import query
         mock_prompt.return_value = "prompt text"
@@ -152,7 +158,11 @@ class TestQuery:
     @patch("query.configure_settings")  # outermost -> last param
     @patch("query.load_index")
     @patch("query.load_system_prompt")
-    def test_metrics_contain_latency(self, mock_prompt, mock_load_index, mock_configure):
+    def test_metrics_contain_latency(
+            self,
+            mock_prompt,
+            mock_load_index,
+            mock_configure):
         """query() metrics dict includes a non-negative latency_seconds."""
         from query import query
         mock_prompt.return_value = "prompt"
@@ -170,7 +180,8 @@ class TestQuery:
     @patch("query.configure_settings")  # outermost -> last param
     @patch("query.load_index")
     @patch("query.load_system_prompt")
-    def test_top_score_is_none_when_no_sources(self, mock_prompt, mock_load_index, mock_configure):
+    def test_top_score_is_none_when_no_sources(
+            self, mock_prompt, mock_load_index, mock_configure):
         """query() sets top_score to None when there are no source nodes."""
         from query import query
         mock_prompt.return_value = "prompt"
@@ -239,3 +250,4 @@ class TestQuery:
         result = query("test", prompt_version="v2")
 
         assert result["metrics"]["prompt_version"] == "v2"
+        mock_prompt.assert_called_once_with("v2")
