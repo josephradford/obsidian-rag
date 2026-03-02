@@ -8,6 +8,7 @@ Obsidian RAG pipeline with MLOps practices. See README.md for basic setup and us
 
 **Current Phase**: Phase 1 - Local RAG Pipeline with MLOps Practices
 **Environment**: macOS (Apple Silicon, 8GB RAM)
+**Python**: 3.12 (3.13+ has ChromaDB/pydantic-v1 incompatibilities — use `python3.12 -m venv .venv`)
 
 ## Key Commands
 
@@ -207,7 +208,7 @@ Key ADRs are documented in `docs/architecture.md`:
 ## Troubleshooting
 
 ### Ollama times out during ingestion
-Increase `request_timeout` in `configure_settings()` in the relevant file
+Set `OLLAMA_REQUEST_TIMEOUT=240.0` (or higher) in `.env` — do not hardcode it in `configure_settings()`
 
 ### Poor retrieval quality
 Run chunking experiments via `./scripts/run_experiment.sh` and compare in MLflow
@@ -235,6 +236,7 @@ Contains all runtime configuration including:
 - SYSTEM_PROMPT_VERSION
 - CHROMA_PERSIST_DIR, MLFLOW_TRACKING_URI
 - LOG_LEVEL
+- OLLAMA_REQUEST_TIMEOUT (default: 120.0)
 
 ### .env.example (committed)
 Template for `.env` - copy and customize for local setup
