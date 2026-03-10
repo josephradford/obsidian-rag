@@ -38,6 +38,10 @@ python src/query.py "Your question here"
 # View MLflow tracking UI
 mlflow ui --port 5001
 
+# Run the API server (PYTHONPATH=src required — src/ is not on sys.path by default)
+PYTHONPATH=src uvicorn src.api:app --port 8000
+PYTHONPATH=src uvicorn src.api:app --reload --port 8000  # dev mode with auto-reload
+
 # Test API endpoints
 curl http://localhost:8000/health
 curl http://localhost:8000/metrics
