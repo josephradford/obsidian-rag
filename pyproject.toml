@@ -57,6 +57,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "autopep8>=2.0.0",
     "pylint>=4.0.0",
+    "httpx>=0.23.0",
 ]
 
 [project.urls]
