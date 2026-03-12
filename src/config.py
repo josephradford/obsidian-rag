@@ -81,6 +81,16 @@ def validate_config() -> None:
         if ext and not ext.startswith('.'):
             errors.append(f"File extension must start with '.': {ext}")
     
+    # Guard: ChromaDB must not be inside the vault (would write to the vault)
+    chroma_dir = os.getenv("CHROMA_PERSIST_DIR", "./data/chroma")
+    if vault_path and os.path.exists(vault_path):
+        vault_real = os.path.realpath(vault_path)
+        chroma_real = os.path.realpath(chroma_dir)
+        if chroma_real.startswith(vault_real + os.sep) or chroma_real == vault_real:
+            errors.append(
+                f"CHROMA_PERSIST_DIR ({chroma_dir}) must not be inside the vault ({vault_path})"
+            )
+
     if errors:
         raise ValueError(f"Configuration errors: {'; '.join(errors)}")
 

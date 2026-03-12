@@ -139,6 +139,27 @@ class TestValidateConfig:
             with pytest.raises(ValueError, match="must start with '.'"):
                 validate_config()
 
+    def test_chroma_dir_inside_vault_raises(self, tmp_path):
+        """CHROMA_PERSIST_DIR inside the vault raises ValueError."""
+        from config import validate_config
+        chroma_inside = str(tmp_path / "chroma")
+        with patch.dict(os.environ, {
+            'OBSIDIAN_VAULT_PATH': str(tmp_path),
+            'CHROMA_PERSIST_DIR': chroma_inside,
+        }):
+            with pytest.raises(ValueError, match="must not be inside the vault"):
+                validate_config()
+
+    def test_chroma_dir_outside_vault_passes(self, tmp_path):
+        """CHROMA_PERSIST_DIR outside the vault passes validation."""
+        from config import validate_config
+        chroma_outside = str(tmp_path.parent / "chroma")
+        with patch.dict(os.environ, {
+            'OBSIDIAN_VAULT_PATH': str(tmp_path),
+            'CHROMA_PERSIST_DIR': chroma_outside,
+        }):
+            validate_config()  # should not raise
+
     def test_multiple_errors_reported_together(self):
         """All config errors are collected and reported in one exception."""
         from config import validate_config
