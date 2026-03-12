@@ -4,6 +4,9 @@ data/
 __pycache__/
 *.pyc
 mlruns/
+mlruns.db
+mlflow.db
 mlartifacts/
 .DS_Store
 logs/
+.coverage
